@@ -1,10 +1,13 @@
 import { Injectable } from '@angular/core';
 import {Hero} from '../hero';
 import {HEROES} from '../mock-heroes';
-import {Observable, of} from 'rxjs';
+import {empty, Observable, of} from 'rxjs';
 import { MessageService} from './message.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { catchError, map, tap } from 'rxjs/operators';
+import {catchError, every, map, share, tap} from 'rxjs/operators';
+import { MsgClientService} from './msg-client.service';
+import { defaultIfEmpty } from 'rxjs/operators';
+
 const httpOptions = {
   headers: new HttpHeaders({ 'Content-Type': 'application/json' })
 };
@@ -12,7 +15,7 @@ const httpOptions = {
   providedIn: 'root'
 })
 export class HeroService {
-  constructor(private messageService: MessageService, private http: HttpClient) { }
+  constructor(private messageService: MessageService, private http: HttpClient, private msgClientService: MsgClientService) { }
   private heroesUrl = 'api/heroes';  // URL to web api
   private handleError<T> (operation = 'operation', result?: T) { /* Catch les erreurs potentielle  */
     return (error: any): Observable<T> => {
@@ -37,6 +40,10 @@ export class HeroService {
   }
   private log(message: string) {
     this.messageService.add(`HeroService: ${message}`);
+  }
+
+  private logclient(message: string) {
+    this.msgClientService.add_msg_client(`Message pour le client: ${message}`);
   }
   /** GET hero by id. Will 404 if id not found */
   getHero(id: number): Observable<Hero> {
@@ -78,10 +85,11 @@ export class HeroService {
       // if not search term, return empty hero array.
       return of([]);
     }
-    return this.http.get<Hero[]>(`${this.heroesUrl}/?name=${term}`).pipe(
+    const resultat = this.http.get<Hero[]>(`${this.heroesUrl}/?name=${term}`).pipe(
       tap(_ => this.log(`found heroes matching "${term}"`)),
-      catchError(this.handleError<Hero[]>('searchHeroes', []))
+      tap(value => {if (value.length === 0) { this.logclient(`Aucun resultat trouvé`); }}),
+      catchError(this.handleError<Hero[]>('searchHeroes', [])),
     );
+    return resultat;
   }
-
 }

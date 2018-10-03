@@ -16,13 +16,13 @@ import { HeroService} from '../services/hero.service';
 })
 export class HeroSearchComponent implements OnInit {
   heroes$: Observable<Hero[]>;
+  value: string;
   private searchTerms = new Subject<string>(); /*Permet de recevoir et d'emettre */
 
   constructor(private heroService: HeroService) {}
 
   // Push a search term into the observable stream.
   search(term: string): void {
-    console.log(term);
     this.searchTerms.next(term); /* recevoir */
   }
 

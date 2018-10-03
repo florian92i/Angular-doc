@@ -6,3 +6,9 @@
   <div *ngFor='let message of messageService.messages'> {{message}} </div>
 
 </div>
+<div *ngIf="msgclientService.messages.length">
+
+  <h2>Messages client</h2>
+  <div *ngFor='let message of msgclientService.messages'> {{message}} </div>
+
+</div>
